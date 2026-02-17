@@ -28,6 +28,8 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .modal { background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
         pre { background: #f8fafc; padding: 12px; border-radius: 6px; font-size: 11px; overflow-x: auto; border: 1px solid #e2e8f0; }
+        .token-hidden { filter: blur(4px); transition: filter 0.3s; }
+        .token-hidden:hover { filter: blur(0); }
     </style>
 </head>
 <body class="bg-slate-50 h-screen flex flex-col overflow-hidden text-slate-900 font-sans">
@@ -36,7 +38,7 @@
     <div id="loader" class="fixed inset-0 loading-overlay">
         <div class="text-center">
             <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500 border-opacity-50 mx-auto"></div>
-            <p class="mt-4 text-blue-400 font-mono tracking-widest uppercase text-xs">Accessing Storage...</p>
+            <p class="mt-4 text-blue-400 font-mono tracking-widest uppercase text-xs">Initializing Engine...</p>
         </div>
     </div>
 
@@ -45,63 +47,74 @@
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden">
             <div class="p-6 border-b flex justify-between items-center">
                 <div>
-                    <h2 class="text-lg font-bold">App Connection Snippets</h2>
-                    <p class="text-xs text-slate-500">How to access this database from your external projects.</p>
+                    <h2 class="text-lg font-bold">Connect Your Live App</h2>
+                    <p class="text-xs text-slate-500">How to access this data from <span class="text-blue-600 font-mono">https://mparwaz.github.io/...</span></p>
                 </div>
                 <button onclick="toggleConnectModal()" class="text-slate-400 hover:text-slate-600">✕</button>
             </div>
-            <div class="p-6 max-h-[60vh] overflow-y-auto space-y-6">
-                <!-- HTML Snippet -->
+            <div class="p-6 max-h-[65vh] overflow-y-auto space-y-6">
+                <!-- Live Fetch Snippet -->
                 <section>
-                    <h3 class="text-xs font-bold text-blue-600 uppercase mb-2">HTML / JavaScript (Client-Side)</h3>
-                    <p class="text-[11px] text-slate-600 mb-2">Use this if your app is hosted on the same domain as this studio.</p>
-                    <pre><code id="codeJS"></code></pre>
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="bg-green-100 text-green-700 text-[9px] px-2 py-0.5 rounded-full font-bold">RECOMMENDED</span>
+                        <h3 class="text-xs font-bold text-slate-900 uppercase">Live Fetch Bridge (JavaScript)</h3>
+                    </div>
+                    <p class="text-[11px] text-slate-600 mb-3">Copy this into your external web app to automatically load the latest database synced to your Gist.</p>
+                    <pre><code id="codeLiveFetch"></code></pre>
                 </section>
-                <!-- PHP Snippet -->
-                <section>
-                    <h3 class="text-xs font-bold text-indigo-600 uppercase mb-2">PHP (Server-Side)</h3>
-                    <p class="text-[11px] text-slate-600 mb-2">After exporting the .sqlite file and uploading it to your server.</p>
-                    <pre><code id="codePHP"></code></pre>
-                </section>
-                <!-- Java Snippet -->
-                <section>
-                    <h3 class="text-xs font-bold text-orange-600 uppercase mb-2">Java (JDBC)</h3>
-                    <pre><code id="codeJava"></code></pre>
-                </section>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <section>
+                        <h3 class="text-[10px] font-bold text-slate-400 uppercase mb-2">PHP Server Bridge</h3>
+                        <pre><code id="codePHP"></code></pre>
+                    </section>
+                    <section>
+                        <h3 class="text-[10px] font-bold text-slate-400 uppercase mb-2">Java / JDBC</h3>
+                        <pre><code id="codeJava"></code></pre>
+                    </section>
+                </div>
             </div>
-            <div class="bg-slate-50 p-4 flex justify-end">
-                <button onclick="toggleConnectModal()" class="px-6 py-2 text-xs font-bold text-white bg-slate-900 hover:bg-black rounded-md">Got it</button>
+            <div class="bg-slate-50 p-4 flex justify-between items-center">
+                <p class="text-[10px] text-slate-400">Note: External apps require the <span class="font-mono">sql-wasm.js</span> library.</p>
+                <button onclick="toggleConnectModal()" class="px-6 py-2 text-xs font-bold text-white bg-slate-900 hover:bg-black rounded-md">Close</button>
             </div>
         </div>
     </div>
 
-    <!-- Sync Modal -->
+    <!-- Sync Settings Modal -->
     <div id="syncModal" class="fixed inset-0 modal z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-md overflow-hidden">
             <div class="p-6">
-                <h2 class="text-lg font-bold mb-1">Cloud Sync Settings</h2>
-                <p class="text-xs text-slate-500 mb-6">Sync your databases across devices using a GitHub Gist.</p>
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 10-9.78 2.096A4.001 4.001 0 003 15z"></path></svg>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold">GitHub Gist Sync</h2>
+                        <p class="text-xs text-slate-500">Connect to your personal cloud storage.</p>
+                    </div>
+                </div>
                 
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">GitHub Token (PAT)</label>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 tracking-widest">GitHub Personal Access Token</label>
                         <input type="password" id="ghToken" class="w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="ghp_xxxxxxxxxxxx">
-                        <a href="https://github.com/settings/tokens" target="_blank" class="text-[10px] text-blue-500 hover:underline mt-1 block">Generate a token with 'gist' scope</a>
+                        <p class="text-[10px] text-slate-400 mt-1">Requires 'gist' scope. <a href="https://github.com/settings/tokens" target="_blank" class="text-blue-500 hover:underline">Create one</a></p>
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Gist ID (Optional)</label>
-                        <input type="text" id="gistId" class="w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Leave blank to create new">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1.5 tracking-widest">Gist ID</label>
+                        <input type="text" id="gistId" class="w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Leave empty for new Gist">
                     </div>
                 </div>
             </div>
             <div class="bg-slate-50 p-4 flex justify-end gap-3">
                 <button onclick="toggleSyncModal()" class="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-200 rounded-md">Cancel</button>
-                <button onclick="saveSyncSettings()" class="px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-md shadow-md">Save & Connect</button>
+                <button onclick="saveSyncSettings()" class="px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-md">Save & Verify</button>
             </div>
         </div>
     </div>
 
-    <!-- Top Navigation -->
+    <!-- Top Bar -->
     <header class="bg-slate-900 text-white h-14 flex items-center justify-between px-4 shadow-xl z-20">
         <div class="flex items-center gap-6">
             <div class="flex items-center gap-2">
@@ -111,73 +124,60 @@
             <nav class="flex gap-1">
                 <button onclick="document.getElementById('dbFile').click()" class="text-xs hover:bg-slate-800 px-3 py-1.5 rounded transition">Import</button>
                 <button onclick="exportDatabase()" class="text-xs hover:bg-slate-800 px-3 py-1.5 rounded transition">Export</button>
-                <button onclick="exportCSV()" class="text-xs hover:bg-slate-800 px-3 py-1.5 rounded transition">CSV Out</button>
+                <button onclick="exportCSV()" class="text-xs hover:bg-slate-800 px-3 py-1.5 rounded transition">CSV</button>
                 <input type="file" id="dbFile" class="hidden" onchange="importFile(event)">
             </nav>
         </div>
         
         <div class="flex items-center gap-4">
-            <button onclick="pushToCloud()" id="cloudPushBtn" class="hidden flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-3 py-1.5 rounded text-[10px] font-bold uppercase transition">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v8"></path></svg>
+            <button onclick="pushToCloud()" id="cloudPushBtn" class="hidden flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-4 py-1.5 rounded text-[10px] font-bold uppercase transition">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v8"></path></svg>
                 Sync to Cloud
             </button>
             <div class="flex items-center bg-slate-800 rounded-lg px-3 py-1 border border-slate-700">
-                <span class="text-[10px] text-slate-500 font-bold uppercase mr-2">Active:</span>
+                <span class="text-[10px] text-slate-500 font-bold uppercase mr-2">Database:</span>
                 <span id="activeDbName" class="text-xs font-mono text-blue-400 font-bold">none</span>
             </div>
-            <div id="status" class="text-xs text-slate-400">Connecting...</div>
+            <div id="status" class="text-xs text-slate-400">Loading...</div>
         </div>
     </header>
 
     <main class="flex-1 flex overflow-hidden">
-        <!-- Explorer Sidebar -->
+        <!-- Sidebar -->
         <aside class="w-72 bg-white border-r border-slate-200 flex flex-col z-10">
-            <!-- DB Switcher Section -->
             <div class="p-3 border-b bg-slate-50">
                 <div class="flex items-center justify-between mb-2">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Databases</span>
-                    <button onclick="createNewDatabasePrompt()" class="p-1 hover:bg-blue-100 rounded text-blue-600" title="New Database">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Library</span>
+                    <button onclick="createNewDatabasePrompt()" class="p-1 hover:bg-blue-100 rounded text-blue-600">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                     </button>
                 </div>
-                <div id="dbList" class="space-y-1 max-h-48 overflow-y-auto">
-                    <!-- Databases injected here -->
-                </div>
+                <div id="dbList" class="space-y-1 max-h-48 overflow-y-auto"></div>
             </div>
 
-            <!-- Cloud Status Section -->
-            <div class="p-3 border-b bg-slate-50">
-                <div class="flex items-center justify-between mb-2">
+            <div class="p-4 border-b bg-white">
+                <div class="flex items-center justify-between mb-3">
                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cloud Sync</span>
-                    <button onclick="toggleSyncModal()" class="p-1 hover:bg-slate-200 rounded text-slate-500">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37a1.724 1.724 0 002.572-1.065z"></path></svg>
-                    </button>
+                    <button onclick="toggleSyncModal()" class="text-[10px] text-blue-600 font-bold hover:underline">Config</button>
                 </div>
-                <div id="cloudStatus" class="text-[10px] text-slate-500 italic">Not connected to cloud</div>
+                <div id="cloudStatusCard" class="bg-slate-50 border border-slate-100 rounded-lg p-3">
+                    <p id="cloudStatus" class="text-[10px] text-slate-500 mb-1 italic">Not Connected</p>
+                    <div id="gistLinkArea" class="hidden mt-2">
+                         <button onclick="toggleConnectModal()" class="w-full text-[10px] bg-white border border-slate-200 hover:border-blue-300 py-1 rounded shadow-sm font-bold text-slate-600 transition">Get Connection Code</button>
+                    </div>
+                </div>
             </div>
 
-            <!-- Table Explorer Section -->
             <div class="p-3 border-b bg-slate-50 flex justify-between items-center">
                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tables</span>
                 <button onclick="refreshTables()" class="p-1 hover:bg-slate-200 rounded text-slate-500">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                 </button>
             </div>
-            <div id="tableList" class="flex-1 overflow-y-auto p-2 space-y-1">
-                <!-- Tables -->
-            </div>
-
-            <!-- History Section -->
-            <div class="p-4 border-t bg-slate-50">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase">History</span>
-                    <button onclick="clearHistory()" class="text-[9px] text-slate-400 hover:text-red-500">Clear</button>
-                </div>
-                <div id="historyList" class="space-y-1 max-h-32 overflow-y-auto"></div>
-            </div>
+            <div id="tableList" class="flex-1 overflow-y-auto p-2 space-y-1"></div>
         </aside>
 
-        <!-- Dynamic Workspace -->
+        <!-- Editor & Results -->
         <section class="flex-1 flex flex-col overflow-hidden bg-slate-100">
             <div id="topPane" class="min-h-[150px] flex flex-col bg-white shadow-sm" style="height: 45%;">
                 <div class="flex items-center justify-between px-4 py-2 border-b bg-white">
@@ -186,16 +186,16 @@
                         <div class="flex items-center gap-2 ml-4">
                             <label class="flex items-center gap-1 cursor-pointer">
                                 <input type="checkbox" id="safeMode" class="w-3 h-3 rounded" checked>
-                                <span class="text-[10px] text-slate-500">Tx Safety</span>
+                                <span class="text-[10px] text-slate-500">Auto-Transaction</span>
                             </label>
                         </div>
                     </div>
                     <div class="flex gap-2">
-                        <button onclick="explainQuery()" class="text-xs text-slate-500 hover:text-blue-600 px-3 py-1">Explain</button>
+                        <button onclick="explainQuery()" class="text-xs text-slate-500 hover:text-blue-600 px-3 py-1">Explain Plan</button>
                         <button id="runBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-1.5 rounded-md text-xs font-bold transition-all shadow-lg active:scale-95">RUN QUERY</button>
                     </div>
                 </div>
-                <textarea id="sqlInput" class="sql-editor flex-1 p-4 resize-none focus:outline-none text-sm leading-relaxed" spellcheck="false">SELECT * FROM sqlite_master;</textarea>
+                <textarea id="sqlInput" class="sql-editor flex-1 p-4 resize-none focus:outline-none text-sm leading-relaxed" spellcheck="false">SELECT * FROM notes;</textarea>
             </div>
 
             <div id="resizer" class="h-1.5 bg-slate-200 border-y border-slate-300"></div>
@@ -203,12 +203,9 @@
             <div id="bottomPane" class="flex-1 flex flex-col bg-white overflow-hidden">
                 <div class="flex items-center justify-between px-4 py-2 border-b bg-slate-50">
                     <span id="resultMeta" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Query Results</span>
-                    <div id="editorControls" class="hidden flex items-center gap-2">
-                        <span class="text-[10px] text-blue-600 font-bold animate-pulse">● EDITING MODE</span>
-                    </div>
                 </div>
                 <div id="resultArea" class="flex-1 overflow-auto">
-                    <div class="h-full flex items-center justify-center text-slate-300 italic text-sm">No results to display</div>
+                    <div class="h-full flex items-center justify-center text-slate-300 italic text-sm">No results</div>
                 </div>
             </div>
         </section>
@@ -217,12 +214,10 @@
     <script>
         let db = null;
         let SQL = null;
-        let lastResults = null;
         let activeDbName = 'main.sqlite';
-        const CONFIG_KEY = 'sqlite_pro_config';
-        const SYNC_KEY = 'sqlite_pro_sync';
+        const CONFIG_KEY = 'sqlite_pro_config_v2';
+        const SYNC_KEY = 'sqlite_pro_sync_v2';
 
-        // 1. Initialization
         (function() {
             const script = document.createElement('script');
             script.src = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js';
@@ -234,11 +229,7 @@
             try {
                 const config = { locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/${file}` };
                 SQL = await initSqlJs(config);
-
-                if (!window.navigator.storage || !window.navigator.storage.getDirectory) {
-                    throw new Error("OPFS not supported.");
-                }
-
+                
                 const savedConfig = JSON.parse(localStorage.getItem(CONFIG_KEY) || '{}');
                 activeDbName = savedConfig.lastDb || 'main.sqlite';
 
@@ -247,41 +238,34 @@
                 await checkSyncStatus();
                 
                 document.getElementById('loader').classList.add('hidden');
-                renderHistory();
             } catch (err) {
-                console.error(err);
-                document.getElementById('loader').innerHTML = `<div class="p-8 bg-red-50 text-red-700 rounded-xl max-w-md shadow-2xl">Engine Error: ${err.message}</div>`;
+                document.getElementById('loader').innerHTML = `<div class="p-8 bg-red-50 text-red-700 rounded-xl max-w-md shadow-2xl">Fatal Error: ${err.message}</div>`;
             }
         }
 
         async function mountDatabase(name) {
             try {
                 const opfsRoot = await navigator.storage.getDirectory();
-                let fileHandle;
                 try {
-                    fileHandle = await opfsRoot.getFileHandle(name);
+                    const fileHandle = await opfsRoot.getFileHandle(name);
                     const file = await fileHandle.getFile();
                     const buf = await file.arrayBuffer();
                     db = new SQL.Database(new Uint8Array(buf));
                 } catch (e) {
                     db = new SQL.Database();
-                    if (name === 'main.sqlite') seedDatabase();
+                    if (name === 'main.sqlite') {
+                        db.run(`CREATE TABLE IF NOT EXISTS notes (id INTEGER PRIMARY KEY, title TEXT, body TEXT);
+                                INSERT INTO notes (title, body) VALUES ('First Note', 'Created at ${new Date().toLocaleString()}');`);
+                    }
                     await persistToOPFS(name);
                 }
-
                 activeDbName = name;
                 document.getElementById('activeDbName').innerText = name;
-                document.getElementById('status').innerText = 'Ready';
-                
-                const config = JSON.parse(localStorage.getItem(CONFIG_KEY) || '{}');
-                config.lastDb = name;
-                localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
-
+                document.getElementById('status').innerText = 'System Ready';
                 refreshTables();
                 updateActiveDbUI();
-            } catch (err) {
-                alert("Failed to mount DB: " + err.message);
-            }
+                localStorage.setItem(CONFIG_KEY, JSON.stringify({ lastDb: activeDbName }));
+            } catch (err) { alert("Mount failed: " + err.message); }
         }
 
         async function persistToOPFS(name = activeDbName) {
@@ -293,177 +277,112 @@
                 const writable = await fileHandle.createWritable();
                 await writable.write(binary);
                 await writable.close();
-            } catch (e) { console.error("Save Failed", e); }
+            } catch (e) { console.error("Write error", e); }
         }
 
-        function seedDatabase() {
-            db.run(`CREATE TABLE IF NOT EXISTS notes (id INTEGER PRIMARY KEY, title TEXT, body TEXT);
-                    INSERT INTO notes (title, body) VALUES ('Hello World', 'Welcome to your first database.');`);
-        }
-
-        // 2. Cloud Sync Management
-        function toggleSyncModal() {
-            const modal = document.getElementById('syncModal');
-            modal.classList.toggle('hidden');
-            const sync = JSON.parse(localStorage.getItem(SYNC_KEY) || '{}');
-            if (sync.token) document.getElementById('ghToken').value = sync.token;
-            if (sync.gistId) document.getElementById('gistId').value = sync.gistId;
-        }
-
+        function toggleSyncModal() { document.getElementById('syncModal').classList.toggle('hidden'); }
+        
         function saveSyncSettings() {
             const token = document.getElementById('ghToken').value.trim();
             const gistId = document.getElementById('gistId').value.trim();
-            if (!token) return alert("GitHub Token is required for sync.");
+            if (!token) return alert("Token required");
             localStorage.setItem(SYNC_KEY, JSON.stringify({ token, gistId }));
             toggleSyncModal();
             checkSyncStatus();
-            showToast("Sync configured");
         }
 
         async function checkSyncStatus() {
             const sync = JSON.parse(localStorage.getItem(SYNC_KEY) || '{}');
             const statusEl = document.getElementById('cloudStatus');
             const pushBtn = document.getElementById('cloudPushBtn');
+            const gistLinkArea = document.getElementById('gistLinkArea');
+            
             if (sync.token) {
-                statusEl.innerHTML = `<span class="text-green-600 font-bold">Connected</span><br>Gist: ${sync.gistId || 'Pending'}`;
+                statusEl.innerHTML = `<span class="text-green-600 font-bold uppercase tracking-tighter">● Cloud Active</span><br><span class="text-[9px] opacity-60">${sync.gistId || 'Ready to deploy'}</span>`;
                 pushBtn.classList.remove('hidden');
+                gistLinkArea.classList.toggle('hidden', !sync.gistId);
             } else {
-                statusEl.innerText = "Not connected to cloud";
+                statusEl.innerText = "Local Storage Only";
                 pushBtn.classList.add('hidden');
+                gistLinkArea.classList.add('hidden');
             }
         }
 
         async function pushToCloud() {
             const sync = JSON.parse(localStorage.getItem(SYNC_KEY) || '{}');
-            if (!sync.token) return;
             const btn = document.getElementById('cloudPushBtn');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = 'Syncing...';
             btn.disabled = true;
+            btn.innerText = 'UPLOADING...';
 
             try {
                 const binary = db.export();
                 const base64 = btoa(String.fromCharCode.apply(null, binary));
                 const filename = activeDbName + ".b64";
                 const payload = {
-                    description: "SQLite Pro Cloud Sync Database",
-                    public: false,
+                    description: "SQLite Pro Database: " + activeDbName,
                     files: { [filename]: { content: base64 } }
                 };
-                const method = sync.gistId ? 'PATCH' : 'POST';
+                
                 const url = sync.gistId ? `https://api.github.com/gists/${sync.gistId}` : `https://api.github.com/gists`;
                 const res = await fetch(url, {
-                    method: method,
+                    method: sync.gistId ? 'PATCH' : 'POST',
                     headers: { 'Authorization': `token ${sync.token}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                if (!res.ok) throw new Error("GitHub API Error");
+                
+                if (!res.ok) throw new Error("Sync Failed");
                 const data = await res.json();
                 if (!sync.gistId) {
                     sync.gistId = data.id;
                     localStorage.setItem(SYNC_KEY, JSON.stringify(sync));
                 }
-                showToast("Cloud Sync Successful");
+                showToast("Synced to Cloud");
                 checkSyncStatus();
-            } catch (e) {
-                alert("Sync failed: " + e.message);
-            } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
+            } catch (e) { alert(e.message); }
+            finally { btn.innerText = 'SYNC TO CLOUD'; btn.disabled = false; }
         }
 
-        // 3. Connection Tools
         function toggleConnectModal() {
             const modal = document.getElementById('connectModal');
             modal.classList.toggle('hidden');
-            if (!modal.classList.contains('hidden')) generateSnippets();
-        }
-
-        function generateSnippets() {
-            document.getElementById('codeJS').innerText = `// Connection snippet for HTML/JS
-const opfsRoot = await navigator.storage.getDirectory();
-const fileHandle = await opfsRoot.getFileHandle('${activeDbName}');
-const file = await fileHandle.getFile();
-const db = new SQL.Database(new Uint8Array(await file.arrayBuffer()));
-console.log("Success: Connected to ${activeDbName}");`;
-
-            document.getElementById('codePHP').innerText = `// Connection snippet for PHP
-<?php
-try {
-    $db = new PDO('sqlite:${activeDbName}');
-    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    echo "Connected to ${activeDbName} successfully";
-} catch(PDOException $e) {
-    echo "Connection failed: " . $e->getMessage();
+            if (!modal.classList.contains('hidden')) {
+                const sync = JSON.parse(localStorage.getItem(SYNC_KEY) || '{}');
+                const gistId = sync.gistId || 'YOUR_GIST_ID';
+                const fileName = activeDbName + ".b64";
+                
+                document.getElementById('codeLiveFetch').innerText = `// Connection Code for your live App
+async function loadLiveDatabase() {
+    const GIST_ID = "${gistId}";
+    const FILE_NAME = "${fileName}";
+    
+    const res = await fetch(\`https://api.github.com/gists/\${GIST_ID}\`);
+    const gist = await res.json();
+    const base64Data = gist.files[FILE_NAME].content;
+    
+    const binary = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+    const SQL = await initSqlJs({ locateFile: f => \`https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/\${f}\` });
+    return new SQL.Database(binary);
 }
-?>`;
 
-            document.getElementById('codeJava').innerText = `// Connection snippet for Java (JDBC)
-import java.sql.*;
+// Usage:
+loadLiveDatabase().then(db => {
+    const results = db.exec("SELECT * FROM notes");
+    console.log("Live Data Loaded!", results);
+});`;
+                
+                document.getElementById('codePHP').innerText = `// Server Bridge
+$data = file_get_contents("https://gist.githubusercontent.com/.../raw/${fileName}");
+$db = new PDO("sqlite:data://text/plain;base64," . $data);`;
 
-public class App {
-    public static void main(String[] args) {
-        String url = "jdbc:sqlite:${activeDbName}";
-        try (Connection conn = DriverManager.getConnection(url)) {
-            System.out.println("Connection to SQLite has been established.");
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        }
-    }
-}`;
-        }
-
-        // 4. Sidebar & Explorer
-        async function refreshDbList() {
-            const container = document.getElementById('dbList');
-            const opfsRoot = await navigator.storage.getDirectory();
-            const list = [];
-            for await (const entry of opfsRoot.values()) {
-                if (entry.kind === 'file' && (entry.name.endsWith('.sqlite') || entry.name.endsWith('.db'))) {
-                    list.push(entry.name);
-                }
-            }
-            if (list.length === 0 && activeDbName) list.push(activeDbName);
-            container.innerHTML = list.map(name => `
-                <div class="db-item group px-3 py-2 rounded-lg cursor-pointer flex items-center justify-between transition-all border border-transparent hover:border-slate-200 ${name === activeDbName ? 'bg-blue-50 border-blue-100' : 'hover:bg-slate-100'}" 
-                     id="db-${name}" onclick="mountDatabase('${name}')">
-                    <div class="flex items-center gap-2 overflow-hidden">
-                        <svg class="w-3.5 h-3.5 flex-shrink-0 ${name === activeDbName ? 'text-blue-600' : 'text-slate-400'}" fill="currentColor" viewBox="0 0 20 20"><path d="M3 12v3c0 1.1.9 2 2 2h10a2 2 0 002-2v-3a2 2 0 00-2-2H5a2 2 0 00-2 2zm2-1h10a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3a1 1 0 011-1zm9-10H6a2 2 0 00-2 2v3h2V3h8v3h2V3a2 2 0 00-2-2z"></path></svg>
-                        <span class="text-xs font-medium truncate ${name === activeDbName ? 'text-blue-700' : 'text-slate-600'}">${name}</span>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function createNewDatabasePrompt() {
-            const name = prompt("Enter database name:");
-            if (!name) return;
-            const sanitized = name.endsWith('.sqlite') || name.endsWith('.db') ? name : name + '.sqlite';
-            mountDatabase(sanitized).then(() => refreshDbList());
-        }
-
-        function refreshTables() {
-            const list = document.getElementById('tableList');
-            const res = db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
-            if (res.length > 0) {
-                list.innerHTML = res[0].values.map(v => `
-                    <div class="group px-3 py-1.5 rounded cursor-pointer hover:bg-blue-50 transition-all border border-transparent hover:border-blue-100 flex items-center justify-between">
-                        <div class="flex items-center gap-2 flex-1 overflow-hidden" onclick="quickSelect('${v[0]}')">
-                            <span class="text-blue-500 text-[10px] font-bold">T</span>
-                            <span class="text-xs font-semibold text-slate-600 truncate">${v[0]}</span>
-                        </div>
-                        <button onclick="toggleConnectModal()" class="opacity-0 group-hover:opacity-100 p-1 hover:text-blue-600 transition" title="Connect Code">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
-                        </button>
-                    </div>
-                `).join('');
-            } else {
-                list.innerHTML = `<div class="p-4 text-center text-[10px] text-slate-400 italic">No tables</div>`;
+                document.getElementById('codeJava').innerText = `// JDBC Bridge
+// 1. Download Gist file content
+// 2. Base64 Decode to bytes
+// 3. Write to temporary .sqlite file
+// 4. Connect via:
+Connection conn = DriverManager.getConnection("jdbc:sqlite:temp.sqlite");`;
             }
         }
 
-        // 5. Querying & Editing
         const executeQuery = async () => {
             const sql = document.getElementById('sqlInput').value.trim();
             if (!sql || !db) return;
@@ -473,17 +392,27 @@ public class App {
             try {
                 if (safeMode) db.run("BEGIN TRANSACTION");
                 const results = db.exec(sql);
-                lastResults = results;
                 if (safeMode) db.run("COMMIT");
+                
                 if (results.length === 0) {
-                    resultArea.innerHTML = `<div class="p-8 text-center text-green-600 text-xs font-bold uppercase">Success: Command Executed</div>`;
+                    resultArea.innerHTML = `<div class="p-8 text-center text-green-600 text-xs font-bold uppercase">Success: No Rows Returned</div>`;
                 } else {
                     results.forEach(res => {
-                        const table = createTableUI(res.columns, res.values, res.columns.includes('id'));
-                        resultArea.appendChild(table);
+                        const wrapper = document.createElement('div');
+                        wrapper.className = "p-4";
+                        let html = `<table class="w-full border-collapse bg-white text-xs shadow-sm border border-slate-200">
+                            <thead class="bg-slate-50 sticky top-0 border-b">
+                                <tr>${res.columns.map(c => `<th class="px-4 py-2 text-left font-bold text-slate-400 uppercase border-r">${c}</th>`).join('')}</tr>
+                            </thead>
+                            <tbody class="divide-y">`;
+                        res.values.forEach(row => {
+                            html += `<tr>${row.map(cell => `<td class="px-4 py-2 border-r last:border-0">${cell === null ? 'NULL' : cell}</td>`).join('')}</tr>`;
+                        });
+                        html += `</tbody></table>`;
+                        wrapper.innerHTML = html;
+                        resultArea.appendChild(wrapper);
                     });
                 }
-                addToHistory(sql);
                 await persistToOPFS();
                 refreshTables();
             } catch (err) {
@@ -492,70 +421,141 @@ public class App {
             }
         };
 
-        function createTableUI(columns, values, hasId) {
-            const wrapper = document.createElement('div');
-            wrapper.className = "p-4 w-full";
-            let html = `<table class="w-full border-collapse bg-white text-sm shadow-sm border border-slate-200">
-                <thead class="bg-slate-50 sticky top-0 border-b border-slate-200">
-                    <tr>${columns.map(c => `<th class="px-4 py-2 text-left text-[11px] font-bold text-slate-400 uppercase border-r border-slate-200">${c}</th>`).join('')}</tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">`;
-            values.forEach(row => {
-                const rowId = hasId ? row[columns.indexOf('id')] : null;
-                html += `<tr>`;
-                row.forEach((cell, colIdx) => {
-                    const isId = columns[colIdx] === 'id';
-                    html += `<td class="px-4 py-2 border-r border-slate-100 last:border-0 ${!isId && hasId ? 'editable-cell' : ''}" 
-                                data-col="${columns[colIdx]}" data-id="${rowId}">${cell === null ? 'NULL' : cell}</td>`;
-                });
-                html += `</tr>`;
+        async function dropTable(tableName, event) {
+            event.stopPropagation();
+            if (!confirm(`Are you sure you want to PERMANENTLY delete the table '${tableName}'? This will delete all rows inside it.`)) return;
+            
+            try {
+                db.run(`DROP TABLE "${tableName}"`);
+                await persistToOPFS();
+                refreshTables();
+                showToast(`Table ${tableName} dropped`);
+                document.getElementById('resultArea').innerHTML = `<div class="p-8 text-center text-slate-300 italic text-sm">Table dropped successfully</div>`;
+            } catch (err) {
+                alert("Failed to drop table: " + err.message);
+            }
+        }
+
+        async function deleteDatabase(name, event) {
+            event.stopPropagation();
+            if (name === 'main.sqlite') return alert("The 'main.sqlite' database is protected and cannot be deleted.");
+            if (!confirm(`Are you sure you want to delete '${name}' from your browser storage? This will not affect any cloud-synced files.`)) return;
+            
+            try {
+                const opfsRoot = await navigator.storage.getDirectory();
+                await opfsRoot.removeEntry(name);
+                if (activeDbName === name) {
+                    await mountDatabase('main.sqlite');
+                }
+                await refreshDbList();
+                showToast(`Deleted ${name}`);
+            } catch (e) {
+                alert("Failed to delete: " + e.message);
+            }
+        }
+
+        async function refreshDbList() {
+            const container = document.getElementById('dbList');
+            const opfsRoot = await navigator.storage.getDirectory();
+            const list = [];
+            for await (const entry of opfsRoot.values()) {
+                if (entry.kind === 'file') list.push(entry.name);
+            }
+            container.innerHTML = list.map(name => `
+                <div class="db-item group px-3 py-2 rounded-lg cursor-pointer flex items-center justify-between transition-all ${name === activeDbName ? 'bg-blue-50 text-blue-700 font-bold' : 'text-slate-600 hover:bg-slate-100'}" 
+                     onclick="mountDatabase('${name}')">
+                    <div class="flex items-center gap-2 truncate">
+                        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M3 12v3c0 1.1.9 2 2 2h10a2 2 0 002-2v-3a2 2 0 00-2-2H5a2 2 0 00-2 2zm2-1h10a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3a1 1 0 011-1zm9-10H6a2 2 0 00-2 2v3h2V3h8v3h2V3a2 2 0 00-2-2z"></path></svg>
+                        <span class="text-xs truncate">${name}</span>
+                    </div>
+                    <button onclick="deleteDatabase('${name}', event)" class="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-500 transition-all rounded" title="Delete Local Database">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function createNewDatabasePrompt() {
+            const name = prompt("Database Name:", "mydata.sqlite");
+            if (name) mountDatabase(name).then(() => refreshDbList());
+        }
+
+        function refreshTables() {
+            const list = document.getElementById('tableList');
+            try {
+                const res = db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
+                if (res.length > 0) {
+                    list.innerHTML = res[0].values.map(v => `
+                        <div class="group px-3 py-1.5 rounded cursor-pointer hover:bg-blue-50 transition-all flex items-center justify-between" onclick="document.getElementById('sqlInput').value = 'SELECT * FROM ${v[0]} LIMIT 100;'; executeQuery();">
+                            <div class="flex items-center gap-2 overflow-hidden">
+                                <span class="text-blue-500 text-[10px] font-bold">T</span>
+                                <span class="text-xs font-semibold text-slate-600 truncate">${v[0]}</span>
+                            </div>
+                            <button onclick="dropTable('${v[0]}', event)" class="opacity-0 group-hover:opacity-100 p-1 text-slate-300 hover:text-red-500 transition-all" title="Drop Table">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </div>
+                    `).join('');
+                } else { list.innerHTML = `<div class="p-4 text-center text-[10px] text-slate-400 italic">Empty Database</div>`; }
+            } catch(e) {}
+        }
+
+        function updateActiveDbUI() {
+            document.querySelectorAll('.db-item').forEach(el => {
+                const isSelected = el.innerText.includes(activeDbName);
+                el.classList.toggle('bg-blue-50', isSelected);
+                el.classList.toggle('text-blue-700', isSelected);
+                el.classList.toggle('font-bold', isSelected);
             });
-            html += `</tbody></table>`;
-            wrapper.innerHTML = html;
-            wrapper.querySelectorAll('.editable-cell').forEach(cell => cell.addEventListener('click', function() { startEdit(this); }));
-            return wrapper;
         }
 
-        let activeEditor = null;
-        function startEdit(cell) {
-            if (activeEditor) return;
-            const oldValue = cell.innerText === 'NULL' ? '' : cell.innerText;
-            const col = cell.dataset.col;
-            const id = cell.dataset.id;
-            cell.classList.add('editing');
-            const input = document.createElement('input');
-            input.value = oldValue;
-            cell.innerHTML = '';
-            cell.appendChild(input);
-            input.focus();
-            activeEditor = input;
-            const finish = async (save) => {
-                const newValue = input.value;
-                cell.classList.remove('editing');
-                activeEditor = null;
-                if (save && newValue !== oldValue) {
-                    const tableName = findTableNameFromLastQuery();
-                    if (tableName) {
-                        try {
-                            db.run(`UPDATE ${tableName} SET ${col} = ? WHERE id = ?`, [newValue, id]);
-                            cell.innerText = newValue;
-                            await persistToOPFS();
-                            showToast("Updated locally");
-                        } catch (e) { alert(e.message); cell.innerText = oldValue; }
-                    }
-                } else { cell.innerText = oldValue; }
-            };
-            input.onblur = () => finish(true);
-            input.onkeydown = (e) => { if (e.key === 'Enter') finish(true); if (e.key === 'Escape') finish(false); };
+        function showToast(msg) {
+            const t = document.createElement('div');
+            t.className = "fixed bottom-4 right-4 bg-slate-800 text-white px-6 py-2 rounded-full shadow-2xl text-[10px] font-bold uppercase z-50 animate-bounce";
+            t.innerText = msg;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 2500);
         }
 
-        function findTableNameFromLastQuery() {
-            const sql = document.getElementById('sqlInput').value.toLowerCase();
-            const match = sql.match(/from\s+([a-zA-Z0-9_]+)/);
-            return match ? match[1] : null;
+        function exportDatabase() {
+            const binary = db.export();
+            const blob = new Blob([binary], { type: 'application/x-sqlite3' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = activeDbName;
+            a.click();
         }
 
-        // 6. Global Helpers
+        async function importFile(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const buf = await file.arrayBuffer();
+            const opfsRoot = await navigator.storage.getDirectory();
+            const fileHandle = await opfsRoot.getFileHandle(file.name, { create: true });
+            const writable = await fileHandle.createWritable();
+            await writable.write(new Uint8Array(buf));
+            await writable.close();
+            await mountDatabase(file.name);
+            await refreshDbList();
+        }
+
+        function exportCSV() {
+            const sql = document.getElementById('sqlInput').value;
+            const res = db.exec(sql);
+            if (!res.length) return;
+            const content = [res[0].columns.join(','), ...res[0].values.map(v => v.join(','))].join('\n');
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(new Blob([content], {type: 'text/csv'}));
+            a.download = "export.csv";
+            a.click();
+        }
+
+        function explainQuery() {
+            const sql = document.getElementById('sqlInput').value;
+            document.getElementById('sqlInput').value = `EXPLAIN QUERY PLAN ${sql}`;
+            executeQuery();
+        }
+
         const resizer = document.getElementById('resizer');
         const topPane = document.getElementById('topPane');
         let isResizing = false;
@@ -566,82 +566,6 @@ public class App {
             if (percentage > 15 && percentage < 85) topPane.style.height = `${percentage}%`;
         });
         window.addEventListener('mouseup', () => isResizing = false);
-
-        function quickSelect(name) {
-            document.getElementById('sqlInput').value = `SELECT * FROM ${name} LIMIT 100;`;
-            executeQuery();
-        }
-
-        async function exportDatabase() {
-            const binary = db.export();
-            const blob = new Blob([binary], { type: 'application/x-sqlite3' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = activeDbName;
-            link.click();
-        }
-
-        async function importFile(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const name = file.name;
-            const buf = await file.arrayBuffer();
-            const opfsRoot = await navigator.storage.getDirectory();
-            const fileHandle = await opfsRoot.getFileHandle(name, { create: true });
-            const writable = await fileHandle.createWritable();
-            await writable.write(new Uint8Array(buf));
-            await writable.close();
-            await mountDatabase(name);
-            await refreshDbList();
-            showToast("Imported: " + name);
-        }
-
-        function exportCSV() {
-            if (!lastResults) return;
-            const res = lastResults[0];
-            const content = [res.columns.join(','), ...res.values.map(v => v.join(','))].join('\n');
-            const blob = new Blob([content], { type: 'text/csv' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = activeDbName.replace('.sqlite', '.csv');
-            a.click();
-        }
-
-        function explainQuery() {
-            const sql = document.getElementById('sqlInput').value;
-            document.getElementById('sqlInput').value = `EXPLAIN QUERY PLAN ${sql}`;
-            executeQuery();
-        }
-
-        function addToHistory(sql) {
-            let history = JSON.parse(localStorage.getItem('sql_hist') || '[]');
-            history = [sql, ...history.filter(i => i !== sql)].slice(0, 15);
-            localStorage.setItem('sql_hist', JSON.stringify(history));
-            renderHistory();
-        }
-
-        function renderHistory() {
-            const list = document.getElementById('historyList');
-            const history = JSON.parse(localStorage.getItem('sql_hist') || '[]');
-            list.innerHTML = history.map(h => `<div class="text-[10px] font-mono text-slate-400 p-1.5 bg-white border border-slate-100 rounded truncate hover:text-blue-600 cursor-pointer" onclick="document.getElementById('sqlInput').value = this.innerText">${h}</div>`).join('');
-        }
-
-        function clearHistory() { localStorage.setItem('sql_hist', '[]'); renderHistory(); }
-
-        function updateActiveDbUI() {
-            document.querySelectorAll('.db-item').forEach(el => {
-                el.classList.remove('bg-blue-50', 'border-blue-100');
-                if (el.id === `db-${activeDbName}`) el.classList.add('bg-blue-50', 'border-blue-100');
-            });
-        }
-
-        function showToast(msg) {
-            const t = document.createElement('div');
-            t.className = "fixed bottom-4 right-4 bg-slate-800 text-white px-4 py-2 rounded shadow-2xl text-xs z-50 animate-bounce";
-            t.innerText = msg;
-            document.body.appendChild(t);
-            setTimeout(() => t.remove(), 2000);
-        }
 
         document.getElementById('runBtn').onclick = executeQuery;
         document.getElementById('sqlInput').onkeydown = (e) => {
