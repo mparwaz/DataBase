@@ -174,7 +174,7 @@
         </section>
     </main>
 
-    <script>
+  <script>
         let db = null;
         let SQL = null;
         let activeDbName = 'main.sqlite';
@@ -313,7 +313,7 @@
                     const colName = res.columns[colIndex];
                     const isEditable = tableName && colName.toLowerCase() !== 'id';
                     html += `<td class="px-4 py-2 border-r ${isEditable ? 'editable-cell' : ''}" 
-                                 ${isEditable ? `onclick="makeEditable(this, '${tableName}', '${colName}', ${row[0]})"` : ''}>
+                                 ${isEditable ? `onclick="makeEditable(this, '${tableName}', '${colName}', '${row[0]}')"` : ''}>
                                  ${cell === null ? '<span class="text-slate-300">NULL</span>' : cell}
                              </td>`;
                 });
@@ -436,7 +436,7 @@
         }
 
         function toggleConnectModal() { document.getElementById('connectModal').classList.toggle('hidden'); }
-        function updateActiveDbUI() { /* Handled in refreshDbList */ }
+        function updateActiveDbUI() { refreshDbList(); }
         function exportCSV() { /* Standard CSV logic */ }
 
         const resizer = document.getElementById('resizer');
